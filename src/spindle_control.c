@@ -77,7 +77,11 @@ void spindle_init()
   TIM_OCInitTypeDef outputChannelInit = { 0 };
   TIM_TimeBaseStructInit(&timerInitStructure);
 
-  timerInitStructure.TIM_Prescaler = F_CPU / 1000000 - 1; // 1000
+  #ifdef TIM_FREQUENCY
+    timerInitStructure.TIM_Prescaler = F_CPU / TIM_FREQUENCY - 1; 
+  #else
+    timerInitStructure.TIM_Prescaler = F_CPU / 1000000 - 1; 
+  #endif
   timerInitStructure.TIM_CounterMode = TIM_CounterMode_Up;
   timerInitStructure.TIM_Period = SPINDLE_PWM_MAX_VALUE - 1;
   timerInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;

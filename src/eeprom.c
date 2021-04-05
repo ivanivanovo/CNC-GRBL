@@ -51,31 +51,31 @@
 unsigned char EE_Buffer[0x400];
 #endif
 #if defined(WIN32)
-#ifndef NOEEPROMSUPPORT
-void eeprom_flush()
-{
-	FILE *out = fopen("eeprom.bin", "wb");
-	fwrite(EE_Buffer, 1, 0x400, out);
-	fclose(out);
-}
-#endif
-void eeprom_init()
-{
-#ifndef NOEEPROMSUPPORT
-	FILE *in = fopen("eeprom.bin", "rb");
-	if (in != NULL)
+	#ifndef NOEEPROMSUPPORT
+		void eeprom_flush()
+		{
+			FILE *out = fopen("eeprom.bin", "wb");
+			fwrite(EE_Buffer, 1, 0x400, out);
+			fclose(out);
+		}
+	#endif
+	void eeprom_init()
 	{
-		fread(EE_Buffer, 1, 0x400, in);
-		fclose(in);
+		#ifndef NOEEPROMSUPPORT
+			FILE *in = fopen("eeprom.bin", "rb");
+			if (in != NULL)
+			{
+				fread(EE_Buffer, 1, 0x400, in);
+				fclose(in);
+			}
+			else
+			{
+				memset(EE_Buffer, 0xff, 0x400);
+			}
+		#else
+			memset(EE_Buffer, 0x0, 0x400);
+		#endif
 	}
-	else
-	{
-		memset(EE_Buffer, 0xff, 0x400);
-	}
-#else
-	memset(EE_Buffer, 0x0, 0x400);
-#endif
-}
 #endif
 
 #ifdef STM32F103C8
@@ -87,7 +87,6 @@ void eeprom_flush()
 	uint16_t nSize = PAGE_SIZE;
 
 	FLASH_Status FlashStatus = FLASH_COMPLETE;
-
 	/* Erase Page0 */
 	FlashStatus = FLASH_ErasePage(EEPROM_START_ADDRESS);
 
@@ -96,6 +95,7 @@ void eeprom_flush()
 	{
 		return;
 	}
+
 
 	while (nSize > 0)
 	{
@@ -239,13 +239,15 @@ void eeprom_put_char( unsigned int addr, unsigned char new_value )
 #endif
 }
 
+//int cTo=0;
+//int cFrom=0;
+
 // Extensions added as part of Grbl 
-
-
 void memcpy_to_eeprom_with_checksum(unsigned int destination, char *source, unsigned int size) {
   unsigned char checksum = 0;
+//  cTo+=1;
   for(; size > 0; size--) { 
-    checksum = (checksum << 1) || (checksum >> 7);
+    checksum = (checksum << 1) | (checksum >> 7);
     checksum += *source;
     eeprom_put_char(destination++, *(source++)); 
   }
@@ -259,9 +261,10 @@ void memcpy_to_eeprom_with_checksum(unsigned int destination, char *source, unsi
 
 int memcpy_from_eeprom_with_checksum(char *destination, unsigned int source, unsigned int size) {
   unsigned char data, checksum = 0;
+//  cFrom+=1;
   for(; size > 0; size--) { 
     data = eeprom_get_char(source++);
-    checksum = (checksum << 1) || (checksum >> 7);
+    checksum = (checksum << 1) | (checksum >> 7);
     checksum += data;    
     *(destination++) = data; 
   }

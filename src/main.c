@@ -83,6 +83,7 @@ void USART1_Configuration(u32 BaudRate)
 #endif
 
 
+
 #ifdef WIN32
 int main(int argc, char *argv[])
 #else
